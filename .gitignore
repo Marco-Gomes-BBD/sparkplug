@@ -1,0 +1,18 @@
+# Build output
+dist/
+build/
+
+# Logging
+*.log
+
+# Local config
+config.json
+
+# Local .env files
+.env.local
+.env.*.local
+
+# PyInstaller
+# NOTE: This is generated, but if modifications
+#       need to be made this should be removed.
+*.spec
