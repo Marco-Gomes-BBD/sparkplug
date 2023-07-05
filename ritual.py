@@ -150,12 +150,11 @@ for row in rows:
     ele_more = find_element_safe(ele_act, sel, '[data-testid="more-actions-button"]')
     ele_more.click()
 
-    ele_copy = await_element(driver, (sel, '[data-testid="action-menu-item-1"]'))
-    ele_copy.click()
+    ele_show = await_element(driver, (sel, '[data-testid="action-menu-item-1"]'))
+    ele_show.click()
 
     ele_reason = await_element(driver, (sel, '[formcontrolname="ReasonFreeText"]'))
     ele_reason.send_keys(reason, Keys.TAB, Keys.ENTER)
-    sleep(1)
 
     ele_secret = await_element(driver, (sel, '[formcontrolname="secret"]'))
     secret = ele_secret.get_attribute("value")
