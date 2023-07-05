@@ -24,7 +24,8 @@ def read_config():
 
     accounts = config.get("accounts", {})
     censor = config.get("censor", False)
-    return accounts, censor
+    driver = config.get("driver", None)
+    return driver, accounts, censor
 
 
 def get_account(accounts, user):
@@ -77,9 +78,25 @@ def await_text_in_element(driver, selector, text, time=10):
     )
 
 
-accounts, censor = read_config()
+def select_driver(name: str):
+    name = name.lower()
 
-driver = webdriver.Chrome()
+    default_driver = webdriver.Edge
+    drivers = {
+        "chrome": webdriver.Chrome,
+        "chromium_edge": webdriver.ChromiumEdge,
+        "firefox": webdriver.Firefox,
+        "ie": webdriver.Ie,
+        "safari": webdriver.Safari,
+    }
+
+    driver = drivers.get(name, default_driver)
+    return driver
+
+
+driver_name, accounts, censor = read_config()
+driver_class = select_driver(driver_name)
+driver = driver_class()
 bring_to_front(driver)
 
 driver.get("https://epvs.za.sbicdirectory.com/PasswordVault/logon.aspx")
