@@ -15,12 +15,14 @@ from selenium.webdriver.support.wait import WebDriverWait
 dotenv_flow("")
 email = os.getenv("STDB_EMAIL")
 password = os.getenv("STDB_PASSWORD")
-censor = False
 
 # Get config file
 config = {}
 with open("config.json", "r") as file:
     config = json.load(file)
+
+accounts = config.get("accounts", None)
+censor = config.get("censor", False)
 
 
 def bring_to_front(driver):
@@ -101,9 +103,9 @@ for row in rows:
 
     padding = " " * 2
     user = ele_name.get_attribute("innerText")
-    lookup = config[user]
+    lookup = accounts[user]
     retrieve = lookup.get("retrieve", False)
-    if user not in config:
+    if user not in accounts:
         print(f"{padding}Skipping account: {user} (unknown account)")
         continue
     if "reason" not in lookup:
@@ -127,7 +129,8 @@ for row in rows:
     sleep(1)
 
     clipboard = pyperclip.paste()
-    if censor:
+    censor_local = censor or lookup.get("censor", False)
+    if censor_local:
         clipboard = len(clipboard) * "█"
 
     print(f"{padding}{user}: {clipboard}")
