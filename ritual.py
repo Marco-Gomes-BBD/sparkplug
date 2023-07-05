@@ -31,13 +31,18 @@ def read_config():
 def get_account(accounts, user):
     lookup = accounts[user]
     retrieve = lookup.get("retrieve", False)
-    assert user in accounts, "Unknown account"
-    assert "reason" in lookup, "No reason provided"
-    assert retrieve, "Account retrieve blacklist"
-
-    reason = lookup["reason"]
+    reason = lookup.get("reason", None)
     censor_user = lookup.get("censor", False)
-    return user, reason, censor_user
+
+    issue = None
+    if user not in accounts:
+        issue = "Unknown account"
+    elif reason is None:
+        issue = "No reason provided"
+    elif not retrieve:
+        issue = "Account retrieve blacklist"
+
+    return user, reason, censor_user, issue
 
 
 def bring_to_front(driver):
@@ -136,7 +141,10 @@ for row in rows:
 
     padding = " " * 2
     user = ele_name.get_attribute("innerText")
-    user, reason, censor_user = get_account(accounts, user)
+    user, reason, censor_user, issue = get_account(accounts, user)
+    if issue is not None:
+        print(f"{padding}Issue with user: {user} ({issue})")
+        continue
 
     ele_act = select_item_in_elements(row, (sel, '[col-id="ActionColumn"]'))
     ele_more = find_element_safe(ele_act, sel, '[data-testid="more-actions-button"]')
