@@ -1,4 +1,5 @@
 import os
+import sys
 import json
 from time import sleep
 from dotenv_flow import dotenv_flow
@@ -213,4 +214,5 @@ for row in rows:
     sleep(3)
 
 driver.close()
-input()
+if getattr(sys, "frozen", False):
+    input()
