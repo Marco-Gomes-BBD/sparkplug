@@ -3,7 +3,6 @@ import json
 from time import sleep
 from dotenv_flow import dotenv_flow
 
-import pyperclip
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
@@ -126,19 +125,25 @@ for row in rows:
     ele_more = find_element_safe(ele_act, sel, '[data-testid="more-actions-button"]')
     ele_more.click()
 
-    ele_copy = await_element(driver, (sel, '[data-testid="action-menu-item-2"]'))
+    ele_copy = await_element(driver, (sel, '[data-testid="action-menu-item-1"]'))
     ele_copy.click()
 
     ele_reason = await_element(driver, (sel, '[formcontrolname="ReasonFreeText"]'))
     ele_reason.send_keys(reason, Keys.TAB, Keys.ENTER)
     sleep(1)
 
-    clipboard = pyperclip.paste()
+    ele_secret = await_element(driver, (sel, '[formcontrolname="secret"]'))
+    secret = ele_secret.get_attribute("value")
+
+    ele_close = await_element(driver, (sel, ".timer-button"))
+    ele_close.click()
+
+    # clipboard = pyperclip.paste()
     censor_local = censor or censor_user
     if censor_local:
-        clipboard = len(clipboard) * "█"
+        secret = len(secret) * "█"
 
-    print(f"{padding}{user}: {clipboard}")
+    print(f"{padding}{user}: {secret}")
     sleep(3)
 
 driver.close()
