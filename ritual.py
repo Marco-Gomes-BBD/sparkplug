@@ -114,27 +114,33 @@ def get_secret_copy(driver, reason):
     return secret
 
 
-def get_secret_method(name: str):
-    name = name.lower()
+def dict_lookup(dict, key, lookup_handler, default):
+    method = dict.get(key, None)
+    if method is None:
+        lookup_handler(key)
+        method = default
+    return method
 
-    default_method = get_secret_copy
+
+def get_secret_method(name: str):
+    def method_error(name):
+        return print(f"Error: {name} not a valid method, falling back to default.")
+
+    default = get_secret_copy
     methods = {
         "copy": get_secret_copy,
         "show": get_secret_show,
     }
-
-    method = methods.get(name, None)
-    if method is None:
-        print(f"Error: {name} not a valid method, falling back to default.")
-        method = default_method
-
-    return method
+    return dict_lookup(methods, name.lower(), method_error, default)
 
 
 def select_driver(name: str):
+    def driver_error(name):
+        print(f"Error: {name} not a valid driver, falling back to default.")
+
     name = name.lower()
 
-    default_driver = webdriver.Edge
+    default = webdriver.Edge
     drivers = {
         "chrome": webdriver.Chrome,
         "chromium_edge": webdriver.ChromiumEdge,
@@ -142,13 +148,7 @@ def select_driver(name: str):
         "ie": webdriver.Ie,
         "safari": webdriver.Safari,
     }
-
-    driver = drivers.get(name, None)
-    if driver is None:
-        print(f"Error: {name} not a valid driver, falling back to default.")
-        driver = default_driver
-
-    return driver
+    return dict_lookup(drivers, name.lower(), driver_error, default)
 
 
 driver_name, accounts, censor, method = read_config()
