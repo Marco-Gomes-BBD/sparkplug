@@ -16,13 +16,28 @@ dotenv_flow("")
 email = os.getenv("STDB_EMAIL")
 password = os.getenv("STDB_PASSWORD")
 
-# Get config file
-config = {}
-with open("config.json", "r") as file:
-    config = json.load(file)
 
-accounts = config.get("accounts", None)
-censor = config.get("censor", False)
+# Get config file
+def read_config():
+    config = {}
+    with open("config.json", "r") as file:
+        config = json.load(file)
+
+    accounts = config.get("accounts", {})
+    censor = config.get("censor", False)
+    return accounts, censor
+
+
+def get_account(accounts, user):
+    lookup = accounts[user]
+    retrieve = lookup.get("retrieve", False)
+    assert user in accounts, "Unknown account"
+    assert "reason" in lookup, "No reason provided"
+    assert retrieve, "Account retrieve blacklist"
+
+    reason = lookup["reason"]
+    censor_user = lookup.get("censor", False)
+    return user, reason, censor_user
 
 
 def bring_to_front(driver):
@@ -62,6 +77,8 @@ def await_text_in_element(driver, selector, text, time=10):
         EC.text_to_be_present_in_element(selector, text)
     )
 
+
+accounts, censor = read_config()
 
 driver = webdriver.Chrome()
 bring_to_front(driver)
@@ -103,19 +120,7 @@ for row in rows:
 
     padding = " " * 2
     user = ele_name.get_attribute("innerText")
-    lookup = accounts[user]
-    retrieve = lookup.get("retrieve", False)
-    if user not in accounts:
-        print(f"{padding}Skipping account: {user} (unknown account)")
-        continue
-    if "reason" not in lookup:
-        print(f"{padding}Skipping account: {user} (no reason provided)")
-        continue
-    if not retrieve:
-        print(f"{padding}Skipping account: {user} (false retrieve)")
-        continue
-
-    reason = lookup["reason"]
+    user, reason, censor_user = get_account(accounts, user)
 
     ele_act = select_item_in_elements(row, (sel, '[col-id="ActionColumn"]'))
     ele_more = find_element_safe(ele_act, sel, '[data-testid="more-actions-button"]')
@@ -129,7 +134,7 @@ for row in rows:
     sleep(1)
 
     clipboard = pyperclip.paste()
-    censor_local = censor or lookup.get("censor", False)
+    censor_local = censor or censor_user
     if censor_local:
         clipboard = len(clipboard) * "█"
 
