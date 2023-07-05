@@ -3,6 +3,7 @@ import json
 from time import sleep
 from dotenv_flow import dotenv_flow
 
+import pyperclip
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
@@ -25,7 +26,8 @@ def read_config():
     accounts = config.get("accounts", {})
     censor = config.get("censor", False)
     driver = config.get("driver", None)
-    return driver, accounts, censor
+    method = config.get("method", None)
+    return driver, accounts, censor, method
 
 
 def get_account(accounts, user):
@@ -83,6 +85,52 @@ def await_text_in_element(driver, selector, text, time=10):
     )
 
 
+def get_secret_show(driver, reason):
+    sel = By.CSS_SELECTOR
+    ele_show = await_element(driver, (sel, '[data-testid="action-menu-item-1"]'))
+    ele_show.click()
+
+    ele_reason = await_element(driver, (sel, '[formcontrolname="ReasonFreeText"]'))
+    ele_reason.send_keys(reason, Keys.TAB, Keys.ENTER)
+
+    ele_secret = await_element(driver, (sel, '[formcontrolname="secret"]'))
+    secret = ele_secret.get_attribute("value")
+
+    ele_close = await_element(driver, (sel, ".timer-button"))
+    ele_close.click()
+    return secret
+
+
+def get_secret_copy(driver, reason):
+    sel = By.CSS_SELECTOR
+    ele_copy = await_element(driver, (sel, '[data-testid="action-menu-item-2"]'))
+    ele_copy.click()
+
+    ele_reason = await_element(driver, (sel, '[formcontrolname="ReasonFreeText"]'))
+    ele_reason.send_keys(reason, Keys.TAB, Keys.ENTER)
+
+    sleep(1)
+    secret = pyperclip.paste()
+    return secret
+
+
+def get_secret_method(name: str):
+    name = name.lower()
+
+    default_method = get_secret_copy
+    methods = {
+        "copy": get_secret_copy,
+        "show": get_secret_show,
+    }
+
+    method = methods.get(name, None)
+    if method is None:
+        print(f"Error: {name} not a valid method, falling back to default.")
+        method = default_method
+
+    return method
+
+
 def select_driver(name: str):
     name = name.lower()
 
@@ -95,14 +143,20 @@ def select_driver(name: str):
         "safari": webdriver.Safari,
     }
 
-    driver = drivers.get(name, default_driver)
+    driver = drivers.get(name, None)
+    if driver is None:
+        print(f"Error: {name} not a valid driver, falling back to default.")
+        driver = default_driver
+
     return driver
 
 
-driver_name, accounts, censor = read_config()
+driver_name, accounts, censor, method = read_config()
 driver_class = select_driver(driver_name)
 driver = driver_class()
 bring_to_front(driver)
+
+get_secret = get_secret_method(method)
 
 driver.get("https://epvs.za.sbicdirectory.com/PasswordVault/logon.aspx")
 elem_user = await_element(driver, (By.ID, "user_pass_form_username_field"))
@@ -150,19 +204,7 @@ for row in rows:
     ele_more = find_element_safe(ele_act, sel, '[data-testid="more-actions-button"]')
     ele_more.click()
 
-    ele_show = await_element(driver, (sel, '[data-testid="action-menu-item-1"]'))
-    ele_show.click()
-
-    ele_reason = await_element(driver, (sel, '[formcontrolname="ReasonFreeText"]'))
-    ele_reason.send_keys(reason, Keys.TAB, Keys.ENTER)
-
-    ele_secret = await_element(driver, (sel, '[formcontrolname="secret"]'))
-    secret = ele_secret.get_attribute("value")
-
-    ele_close = await_element(driver, (sel, ".timer-button"))
-    ele_close.click()
-
-    # clipboard = pyperclip.paste()
+    secret = get_secret(driver, reason)
     censor_local = censor or censor_user
     if censor_local:
         secret = len(secret) * "█"
