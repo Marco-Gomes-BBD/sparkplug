@@ -11,7 +11,6 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
 
-
 # Get environment
 dotenv_flow("")
 email = os.getenv("STDB_EMAIL")
@@ -28,7 +27,8 @@ def read_config():
     censor = config.get("censor", False)
     driver = config.get("driver", None)
     method = config.get("method", None)
-    return driver, accounts, censor, method
+    auth_method = config.get("auth_method", None)
+    return driver, accounts, censor, method, auth_method
 
 
 def get_account(accounts, user):
@@ -80,6 +80,13 @@ def await_element(driver, selector, time=10):
     return WebDriverWait(driver, time).until(EC.presence_of_element_located(selector))
 
 
+def await_element_stale(driver, selector, time=10, stale_time=10):
+    element = await_element(driver, selector, time)
+    WebDriverWait(driver, stale_time).until(EC.staleness_of(element))
+    element = await_element(driver, selector, time)
+    return element
+
+
 def await_text_in_element(driver, selector, text, time=10):
     return WebDriverWait(driver, time).until(
         EC.text_to_be_present_in_element(selector, text)
@@ -115,6 +122,28 @@ def get_secret_copy(driver, reason):
     return secret
 
 
+def authenticate_radius():
+    driver.get("https://epvs.za.sbicdirectory.com/PasswordVault/v10/logon/radius")
+    elem_user = await_element(driver, (By.ID, "user_pass_form_username_field"))
+    elem_user.clear()
+    elem_user.send_keys(email)
+
+    elem_pass = await_element(driver, (By.ID, "user_pass_form_password_field"))
+    elem_pass.clear()
+    elem_pass.send_keys(password, Keys.RETURN)
+
+
+def authenticate_saml():
+    driver.get("https://epvs.za.sbicdirectory.com/PasswordVault/v10/logon/saml")
+    elem_user = await_element(driver, (By.CSS_SELECTOR, '[name="loginfmt"]'))
+    elem_user.clear()
+    elem_user.send_keys(email, Keys.RETURN)
+
+    elem_pass = await_element_stale(driver, (By.CSS_SELECTOR, '[name="passwd"]'))
+    elem_pass.clear()
+    elem_pass.send_keys(password, Keys.RETURN)
+
+
 def dict_lookup(dict, key, lookup_handler, default):
     method = dict.get(key, None)
     if method is None:
@@ -131,6 +160,18 @@ def get_secret_method(name: str):
     methods = {
         "copy": get_secret_copy,
         "show": get_secret_show,
+    }
+    return dict_lookup(methods, name.lower(), method_error, default)
+
+
+def get_authentication_method(name: str):
+    def method_error(name):
+        return print(f"Error: {name} not a valid authentication, using default.")
+
+    default = authenticate_radius
+    methods = {
+        "radius": authenticate_radius,
+        "saml": authenticate_saml,
     }
     return dict_lookup(methods, name.lower(), method_error, default)
 
@@ -152,20 +193,15 @@ def select_driver(name: str):
     return dict_lookup(drivers, name.lower(), driver_error, default)
 
 
-driver_name, accounts, censor, method = read_config()
+driver_name, accounts, censor, method, auth_method = read_config()
 driver_class = select_driver(driver_name)
+get_secret = get_secret_method(method)
+authenticate = get_authentication_method(auth_method)
+
 driver = driver_class()
 bring_to_front(driver)
 
-get_secret = get_secret_method(method)
-
-driver.get("https://epvs.za.sbicdirectory.com/PasswordVault/logon.aspx")
-elem_user = await_element(driver, (By.ID, "user_pass_form_username_field"))
-elem_pass = await_element(driver, (By.ID, "user_pass_form_password_field"))
-elem_user.clear()
-elem_pass.clear()
-elem_user.send_keys(email)
-elem_pass.send_keys(password, Keys.RETURN)
+authenticate()
 
 # Wait for the next page to load
 WebDriverWait(driver, 60).until(EC.title_is("Accounts"))
