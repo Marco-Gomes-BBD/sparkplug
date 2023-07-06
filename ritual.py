@@ -188,7 +188,6 @@ def select_driver(name: str):
         "chrome": webdriver.Chrome,
         "chromium_edge": webdriver.ChromiumEdge,
         "firefox": webdriver.Firefox,
-        "ie": webdriver.Ie,
         "safari": webdriver.Safari,
     }
     return dict_lookup(drivers, name.lower(), driver_error, default)
