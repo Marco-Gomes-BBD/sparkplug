@@ -17,19 +17,41 @@ dotenv_flow("")
 email = os.getenv("STDB_EMAIL")
 password = os.getenv("STDB_PASSWORD")
 
+defaults = {
+    "driver": "chrome",
+    "censor": False,
+    "method": "show",
+    "auth_method": "saml",
+    "account": {"reason": None, "retrieve": True, "censor": False},
+}
 
-# Get config file
+
 def read_config():
     config = {}
-    with open("config.json", "r") as file:
-        config = json.load(file)
+    try:
+        with open("config.json", "r") as file:
+            config = json.load(file)
+    except Exception:
+        print("Invalid config file")
 
     accounts = config.get("accounts", {})
-    censor = config.get("censor", False)
-    driver = config.get("driver", None)
-    method = config.get("method", None)
-    auth_method = config.get("auth_method", None)
+    censor = config.get("censor", defaults["censor"])
+    driver = config.get("driver", defaults["driver"])
+    method = config.get("method", defaults["method"])
+    auth_method = config.get("auth_method", defaults["auth_method"])
     return driver, accounts, censor, method, auth_method
+
+
+def save_config():
+    with open("config.json", "w") as file:
+        new_config = {
+            "driver": driver_name,
+            "censor": censor,
+            "method": method,
+            "auth_method": auth_method,
+            "accounts": accounts,
+        }
+        json.dump(new_config, file, indent=4)
 
 
 def get_account(accounts, user):
@@ -41,6 +63,7 @@ def get_account(accounts, user):
     issue = None
     if user not in accounts:
         issue = "Unknown account"
+        accounts[user] = defaults["account"]
     elif reason is None:
         issue = "No reason provided"
     elif not retrieve:
@@ -253,6 +276,7 @@ def main():
 
 def close():
     driver.quit()
+    save_config()
 
     if getattr(sys, "frozen", False):
         input()
