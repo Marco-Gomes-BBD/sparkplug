@@ -10,6 +10,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
+from selenium.common import exceptions as SEerror
 
 # Get environment
 dotenv_flow("")
@@ -201,50 +202,62 @@ authenticate = get_authentication_method(auth_method)
 driver = driver_class()
 bring_to_front(driver)
 
-authenticate()
 
-# Wait for the next page to load
-WebDriverWait(driver, 60).until(EC.title_is("Accounts"))
+def main():
+    authenticate()
 
-# Get the login table
-driver.switch_to.frame("frame-epv")
-find_count_class = ".grid-title__title__filter__results"
-_ = await_text_in_element(driver, (By.CSS_SELECTOR, find_count_class), "results", 20)
+    # Wait for the next page to load
+    WebDriverWait(driver, 60).until(EC.title_is("Accounts"))
 
-elem_logins = await_element(driver, (By.CSS_SELECTOR, "[ref=eBodyContainer]"))
-elem_actions = await_element(driver, (By.CSS_SELECTOR, "[ref=eRightContainer]"))
+    # Get the login table
+    driver.switch_to.frame("frame-epv")
+    find_count_class = ".grid-title__title__filter__results"
+    selector = (By.CSS_SELECTOR, find_count_class)
+    _ = await_text_in_element(driver, selector, "results", 20)
 
-# Get table elements
-children_logins = get_children(elem_logins)
-children_actions = get_children(elem_actions)
-rows = zip(children_logins, children_actions)
+    elem_logins = await_element(driver, (By.CSS_SELECTOR, "[ref=eBodyContainer]"))
+    elem_actions = await_element(driver, (By.CSS_SELECTOR, "[ref=eRightContainer]"))
 
-# Get the logins
-print("Logins:")
-for row in rows:
-    sel = By.CSS_SELECTOR
-    ele_user = select_item_in_elements(row, (sel, '[col-id="UserName"]'))
-    ele_name = find_element_safe(ele_user, sel, '[data-testid="grid-cell-UserName"]')
+    # Get table elements
+    children_logins = get_children(elem_logins)
+    children_actions = get_children(elem_actions)
+    rows = zip(children_logins, children_actions)
 
-    padding = " " * 2
-    user = ele_name.get_attribute("innerText")
-    user, reason, censor_user, issue = get_account(accounts, user)
-    if issue is not None:
-        print(f"{padding}Issue with user: {user} ({issue})")
-        continue
+    # Get the logins
+    print("Logins:")
+    for row in rows:
+        sel = By.CSS_SELECTOR
+        ele_user = select_item_in_elements(row, (sel, '[col-id="UserName"]'))
+        selector = '[data-testid="grid-cell-UserName"]'
+        ele_name = find_element_safe(ele_user, sel, selector)
 
-    ele_act = select_item_in_elements(row, (sel, '[col-id="ActionColumn"]'))
-    ele_more = find_element_safe(ele_act, sel, '[data-testid="more-actions-button"]')
-    ele_more.click()
+        padding = " " * 2
+        user = ele_name.get_attribute("innerText")
+        user, reason, censor_user, issue = get_account(accounts, user)
+        if issue is not None:
+            print(f"{padding}Issue with user: {user} ({issue})")
+            continue
 
-    secret = get_secret(driver, reason)
-    censor_local = censor or censor_user
-    if censor_local:
-        secret = len(secret) * "█"
+        ele_act = select_item_in_elements(row, (sel, '[col-id="ActionColumn"]'))
+        selector = '[data-testid="more-actions-button"]'
+        ele_more = find_element_safe(ele_act, sel, selector)
+        ele_more.click()
 
-    print(f"{padding}{user}: {secret}")
-    sleep(3)
+        secret = get_secret(driver, reason)
+        censor_local = censor or censor_user
+        if censor_local:
+            secret = len(secret) * "█"
 
-driver.close()
-if getattr(sys, "frozen", False):
-    input()
+        print(f"{padding}{user}: {secret}")
+        sleep(3)
+
+
+def close():
+    driver.quit()
+
+    if getattr(sys, "frozen", False):
+        input()
+
+
+main()
+close()
