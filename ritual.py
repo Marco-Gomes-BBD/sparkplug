@@ -208,25 +208,21 @@ WebDriverWait(driver, 60).until(EC.title_is("Accounts"))
 
 # Get the login table
 driver.switch_to.frame("frame-epv")
-elem_results = await_text_in_element(
-    driver, (By.CSS_SELECTOR, ".grid-title__title__filter__results"), "results", 20
-)
+find_count_class = ".grid-title__title__filter__results"
+_ = await_text_in_element(driver, (By.CSS_SELECTOR, find_count_class), "results", 20)
 
-elem_fav = await_element(driver, (By.CSS_SELECTOR, "[ref=eLeftContainer]"))
 elem_logins = await_element(driver, (By.CSS_SELECTOR, "[ref=eBodyContainer]"))
 elem_actions = await_element(driver, (By.CSS_SELECTOR, "[ref=eRightContainer]"))
 
 # Get table elements
-children_fav = get_children(elem_fav)
 children_logins = get_children(elem_logins)
 children_actions = get_children(elem_actions)
-rows = zip(children_fav, children_logins, children_actions)
+rows = zip(children_logins, children_actions)
 
 # Get the logins
 print("Logins:")
 for row in rows:
     sel = By.CSS_SELECTOR
-    ele_fav = select_item_in_elements(row, (sel, '[col-id="isFavorite"]'))
     ele_user = select_item_in_elements(row, (sel, '[col-id="UserName"]'))
     ele_name = find_element_safe(ele_user, sel, '[data-testid="grid-cell-UserName"]')
 
