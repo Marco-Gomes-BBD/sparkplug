@@ -10,7 +10,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
-from selenium.common import exceptions as SEerror
+from selenium.common import exceptions as seleniumError
 
 # Get environment
 dotenv_flow("")
@@ -123,7 +123,7 @@ def get_secret_copy(driver, reason):
     return secret
 
 
-def authenticate_radius():
+def authenticate_radius(driver):
     driver.get("https://epvs.za.sbicdirectory.com/PasswordVault/v10/logon/radius")
     elem_user = await_element(driver, (By.ID, "user_pass_form_username_field"))
     elem_user.clear()
@@ -134,7 +134,7 @@ def authenticate_radius():
     elem_pass.send_keys(password, Keys.RETURN)
 
 
-def authenticate_saml():
+def authenticate_saml(driver):
     driver.get("https://epvs.za.sbicdirectory.com/PasswordVault/v10/logon/saml")
     elem_user = await_element(driver, (By.CSS_SELECTOR, '[name="loginfmt"]'))
     elem_user.clear()
@@ -203,7 +203,7 @@ bring_to_front(driver)
 
 
 def main():
-    authenticate()
+    authenticate(driver)
 
     # Wait for the next page to load
     WebDriverWait(driver, 60).until(EC.title_is("Accounts"))
@@ -260,9 +260,9 @@ def close():
 
 def excepthook(exctype, value, _):
     match exctype:
-        case SEerror.NoSuchWindowException:
+        case seleniumError.NoSuchWindowException:
             print("Why did you close the window?")
-        case SEerror.TimeoutException:
+        case seleniumError.TimeoutException:
             print("Be quicker!")
         case _:
             print("Unhandled exception!")
