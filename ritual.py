@@ -259,5 +259,20 @@ def close():
         input()
 
 
+def excepthook(exctype, value, _):
+    match exctype:
+        case SEerror.NoSuchWindowException:
+            print("Why did you close the window?")
+        case SEerror.TimeoutException:
+            print("Be quicker!")
+        case _:
+            print("Unhandled exception!")
+            print(f"{exctype}")
+            print(f"{value}")
+    close()
+
+
+# Set the custom exception handler
+sys.excepthook = excepthook
 main()
 close()
