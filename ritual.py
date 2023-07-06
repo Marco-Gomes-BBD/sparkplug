@@ -33,7 +33,7 @@ def read_config():
 
 
 def get_account(accounts, user):
-    lookup = accounts[user]
+    lookup = accounts.get(user, {})
     retrieve = lookup.get("retrieve", False)
     reason = lookup.get("reason", None)
     censor_user = lookup.get("censor", False)
