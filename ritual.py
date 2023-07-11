@@ -4,6 +4,8 @@ import json
 from time import sleep
 from dotenv_flow import dotenv_flow
 
+import types
+
 import pyperclip
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -25,6 +27,10 @@ defaults = {
     "account": {"reason": None, "retrieve": True, "censor": False},
 }
 
+# Global variables
+driver = None
+config = None
+
 
 def read_config():
     config = {}
@@ -39,18 +45,27 @@ def read_config():
     driver = config.get("driver", defaults["driver"])
     method = config.get("method", defaults["method"])
     auth_method = config.get("auth_method", defaults["auth_method"])
-    return driver, accounts, censor, method, auth_method
+
+    config = {
+        "driver": driver,
+        "censor": censor,
+        "method": method,
+        "auth_method": auth_method,
+        "accounts": accounts,
+    }
+    return types.SimpleNamespace(**config)
 
 
-def save_config():
+def save_config(config):
+    new_config = {
+        "driver": config.driver,
+        "censor": config.censor,
+        "method": config.method,
+        "auth_method": config.auth_method,
+        "accounts": config.accounts,
+    }
+
     with open("config.json", "w") as file:
-        new_config = {
-            "driver": driver_name,
-            "censor": censor,
-            "method": method,
-            "auth_method": auth_method,
-            "accounts": accounts,
-        }
         json.dump(new_config, file, indent=4)
 
 
@@ -82,15 +97,6 @@ def get_children(element):
     return element.find_elements(By.XPATH, "./*")
 
 
-def select_item_in_elements(elements, selector):
-    by, value = selector
-    for element in elements:
-        user_field = find_element_safe(element, by, value)
-        if user_field is not None:
-            return user_field
-    return None
-
-
 def find_element_safe(element, by, value):
     res = None
     try:
@@ -98,6 +104,15 @@ def find_element_safe(element, by, value):
     except Exception:
         res = None
     return res
+
+
+def select_item_in_elements(elements, selector):
+    by, value = selector
+    for element in elements:
+        user_field = find_element_safe(element, by, value)
+        if user_field is not None:
+            return user_field
+    return None
 
 
 def await_element(driver, selector, time=10):
@@ -176,54 +191,53 @@ def dict_lookup(dict, key, lookup_handler, default):
     return method
 
 
-def get_secret_method(name: str):
+def get_secret_method(name: str, default: str = defaults["method"]):
     def method_error(name):
         return print(f"Error: {name} not a valid method, falling back to default.")
 
-    default = get_secret_copy
     methods = {
         "copy": get_secret_copy,
         "show": get_secret_show,
     }
+    default = methods[default]
     return dict_lookup(methods, name.lower(), method_error, default)
 
 
-def get_authentication_method(name: str):
+def get_authentication_method(name: str, default: str = defaults["auth_method"]):
     def method_error(name):
         return print(f"Error: {name} not a valid authentication, using default.")
 
-    default = authenticate_radius
     methods = {
         "radius": authenticate_radius,
         "saml": authenticate_saml,
     }
+    default = methods[default]
     return dict_lookup(methods, name.lower(), method_error, default)
 
 
-def select_driver(name: str):
+def select_driver(name: str, default: str = defaults["driver"]):
     def driver_error(name):
         print(f"Error: {name} not a valid driver, falling back to default.")
 
     name = name.lower()
-
-    default = webdriver.Edge
     drivers = {
         "chrome": webdriver.Chrome,
         "chromium_edge": webdriver.ChromiumEdge,
         "firefox": webdriver.Firefox,
         "safari": webdriver.Safari,
     }
+    default = drivers[default]
     return dict_lookup(drivers, name.lower(), driver_error, default)
 
 
-driver_name, accounts, censor, method, auth_method = read_config()
-driver_class = select_driver(driver_name)
-get_secret = get_secret_method(method)
-authenticate = get_authentication_method(auth_method)
-driver = None
-
-
 def main():
+    global driver, config
+
+    config = read_config()
+    driver_class = select_driver(config.driver)
+    get_secret = get_secret_method(config.method)
+    authenticate = get_authentication_method(config.auth_method)
+
     driver = driver_class()
     bring_to_front(driver)
     authenticate(driver)
@@ -255,7 +269,7 @@ def main():
 
         padding = " " * 2
         user = ele_name.get_attribute("innerText")
-        user, reason, censor_user, issue = get_account(accounts, user)
+        user, reason, censor_user, issue = get_account(config.accounts, user)
         if issue is not None:
             print(f"{padding}Issue with user: {user} ({issue})")
             continue
@@ -266,30 +280,34 @@ def main():
         ele_more.click()
 
         secret = get_secret(driver, reason)
-        censor_local = censor or censor_user
+        censor_local = config.censor or censor_user
         if censor_local:
             secret = len(secret) * "█"
 
         print(f"{padding}{user}: {secret}")
         sleep(3)
 
+    save_config(config)
+
 
 def close():
-    driver.quit()
-    save_config()
+    if driver is not None:
+        driver.quit()
 
     if getattr(sys, "frozen", False):
         input()
 
 
 def excepthook(exctype, value, _):
+    global driver
     match exctype:
         case seleniumError.NoSuchWindowException:
             print("Why did you close the window?")
+            driver = None
         case seleniumError.TimeoutException:
             print("Be quicker!")
         case seleniumError.WebDriverException:
-            print("Web issue!")
+            print("Web issue, please try again later.")
         case _:
             print("Unhandled exception!")
             print(f"{exctype}")
@@ -297,7 +315,6 @@ def excepthook(exctype, value, _):
     close()
 
 
-# Set the custom exception handler
 sys.excepthook = excepthook
 main()
 close()
