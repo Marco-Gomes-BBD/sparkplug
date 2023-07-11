@@ -1,6 +1,7 @@
 import os
 import sys
 import json
+import argparse
 from time import sleep
 from dotenv_flow import dotenv_flow
 
@@ -30,12 +31,16 @@ defaults = {
 # Global variables
 driver = None
 config = None
+args = None
+
+# App information
+version = "1.0.0"
 
 
-def read_config():
+def read_config(file: str):
     config = {}
     try:
-        with open("config.json", "r") as file:
+        with open(file, "r") as file:
             config = json.load(file)
     except Exception:
         print("Invalid config file")
@@ -56,7 +61,7 @@ def read_config():
     return types.SimpleNamespace(**config)
 
 
-def save_config(config):
+def save_config(config, file: str):
     new_config = {
         "driver": config.driver,
         "censor": config.censor,
@@ -65,7 +70,7 @@ def save_config(config):
         "accounts": config.accounts,
     }
 
-    with open("config.json", "w") as file:
+    with open(file, "w") as file:
         json.dump(new_config, file, indent=4)
 
 
@@ -230,10 +235,20 @@ def select_driver(name: str, default: str = defaults["driver"]):
     return dict_lookup(drivers, name.lower(), driver_error, default)
 
 
+def parse_arguments(version):
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "-c", "--config", default="config.json", help="Specify config file"
+    )
+    parser.add_argument("-v", "--version", action="version", version=version)
+    args = parser.parse_args()
+    return args
+
+
 def main():
     global driver, config
 
-    config = read_config()
+    config = read_config(args.config)
     driver_class = select_driver(config.driver)
     get_secret = get_secret_method(config.method)
     authenticate = get_authentication_method(config.auth_method)
@@ -287,7 +302,7 @@ def main():
         print(f"{padding}{user}: {secret}")
         sleep(3)
 
-    save_config(config)
+    save_config(config, args.config)
 
 
 def close():
@@ -316,5 +331,6 @@ def excepthook(exctype, value, _):
 
 
 sys.excepthook = excepthook
+args = parse_arguments(version)
 main()
 close()
