@@ -19,8 +19,8 @@ password = os.getenv("STDB_PASSWORD")
 
 defaults = {
     "driver": "chrome",
-    "censor": False,
-    "method": "show",
+    "censor": True,
+    "method": "copy",
     "auth_method": "saml",
     "account": {"reason": None, "retrieve": True, "censor": False},
 }
@@ -220,12 +220,12 @@ driver_name, accounts, censor, method, auth_method = read_config()
 driver_class = select_driver(driver_name)
 get_secret = get_secret_method(method)
 authenticate = get_authentication_method(auth_method)
-
-driver = driver_class()
-bring_to_front(driver)
+driver = None
 
 
 def main():
+    driver = driver_class()
+    bring_to_front(driver)
     authenticate(driver)
 
     # Wait for the next page to load
@@ -288,6 +288,8 @@ def excepthook(exctype, value, _):
             print("Why did you close the window?")
         case seleniumError.TimeoutException:
             print("Be quicker!")
+        case seleniumError.WebDriverException:
+            print("Web issue!")
         case _:
             print("Unhandled exception!")
             print(f"{exctype}")
