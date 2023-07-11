@@ -318,9 +318,9 @@ def close():
         input()
 
 
-def excepthook(exctype, value, _):
+def excepthook(type, value, traceback):
     global driver
-    match exctype:
+    match type:
         case seleniumError.NoSuchWindowException:
             print("Why did you close the window?")
             driver = None
@@ -329,9 +329,10 @@ def excepthook(exctype, value, _):
         case seleniumError.WebDriverException:
             print("Web issue, please try again later.")
         case _:
-            print("Unhandled exception!")
-            print(f"{exctype}")
-            print(f"{value}")
+            if type is KeyboardInterrupt:
+                print("Goodbye.")
+            else:
+                sys.__excepthook__(type, value, traceback)
     close()
 
 
