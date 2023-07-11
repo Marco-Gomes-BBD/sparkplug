@@ -33,6 +33,8 @@ driver = None
 config = None
 args = None
 
+padding = " " * 2
+
 # App information
 version = "1.0.0"
 
@@ -235,6 +237,25 @@ def select_driver(name: str, default: str = defaults["driver"]):
     return dict_lookup(drivers, name.lower(), driver_error, default)
 
 
+def get_row_secret(get_secret, row):
+    sel = By.CSS_SELECTOR
+    ele_user = select_item_in_elements(row, (sel, '[col-id="UserName"]'))
+    ele_name = find_element_safe(ele_user, sel, '[data-testid="grid-cell-UserName"]')
+
+    user = ele_name.get_attribute("innerText")
+    user, reason, censor_user, issue = get_account(config.accounts, user)
+    if issue is not None:
+        print(f"{padding}Issue with user: {user} ({issue})")
+        return None, False, None
+
+    ele_act = select_item_in_elements(row, (sel, '[col-id="ActionColumn"]'))
+    ele_more = find_element_safe(ele_act, sel, '[data-testid="more-actions-button"]')
+    ele_more.click()
+
+    secret = get_secret(driver, reason)
+    return user, censor_user, secret
+
+
 def parse_arguments(version):
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -277,30 +298,14 @@ def main():
     # Get the logins
     print("Logins:")
     for row in rows:
-        sel = By.CSS_SELECTOR
-        ele_user = select_item_in_elements(row, (sel, '[col-id="UserName"]'))
-        selector = '[data-testid="grid-cell-UserName"]'
-        ele_name = find_element_safe(ele_user, sel, selector)
+        user, censor_user, secret = get_row_secret(get_secret, row)
+        if (user is not None):
+            censor_local = config.censor or censor_user
+            if censor_local:
+                secret = len(secret) * "█"
 
-        padding = " " * 2
-        user = ele_name.get_attribute("innerText")
-        user, reason, censor_user, issue = get_account(config.accounts, user)
-        if issue is not None:
-            print(f"{padding}Issue with user: {user} ({issue})")
-            continue
-
-        ele_act = select_item_in_elements(row, (sel, '[col-id="ActionColumn"]'))
-        selector = '[data-testid="more-actions-button"]'
-        ele_more = find_element_safe(ele_act, sel, selector)
-        ele_more.click()
-
-        secret = get_secret(driver, reason)
-        censor_local = config.censor or censor_user
-        if censor_local:
-            secret = len(secret) * "█"
-
-        print(f"{padding}{user}: {secret}")
-        sleep(3)
+            print(f"{padding}{user}: {secret}")
+            sleep(3)
 
     save_config(config, args.config)
 
