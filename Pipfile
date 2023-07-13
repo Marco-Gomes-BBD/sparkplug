@@ -7,8 +7,12 @@ name = "pypi"
 selenium = "*"
 dotenv-flow = "*"
 pyperclip = "*"
+pyautogui = "*"
+pywinauto = "*"
+pygetwindow = "*"
 
 [dev-packages]
+pyinstaller = "*"
 
 [requires]
 python_version = "3.10"
