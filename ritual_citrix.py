@@ -7,8 +7,8 @@ import pyautogui as ag
 import pygetwindow as gw
 import subprocess
 
-next_image = "res/next.png"
-signin_image = "res/signin.png"
+next_image = os.path.join("res", "next.png")
+signin_image = os.path.join("res", "signin.png")
 
 # Get environment
 dotenv_flow("")
@@ -62,9 +62,7 @@ citrix = r"C:\Program Files\Citrix\Secure Access Client\nsload"
 citrix_name = "Citrix Secure Access"
 subprocess.Popen(citrix)
 
-timeout = 10
-login_window = wait_biggest_window(citrix_name, timeout)
-
+login_window = wait_biggest_window(citrix_name, 10)
 if login_window is None:
     print("Window not found.")
     close()
@@ -74,13 +72,13 @@ window = gw.getActiveWindow()
 if window.title == citrix_name:
     bounds = getElementBounds(window)
 
-    ele_next = ag.locateOnScreen(next_image, region=bounds, minSearchTime=5)
+    ele_next = ag.locateOnScreen(next_image, region=bounds, minSearchTime=60)
     ag.typewrite(email)
     if ele_next is not None:
         x, y = getElementCenter(ele_next)
         ag.click(x, y)
 
-    ele_sign = ag.locateOnScreen(signin_image, region=bounds, minSearchTime=5)
+    ele_sign = ag.locateOnScreen(signin_image, region=bounds, minSearchTime=60)
     ag.typewrite(password)
     if ele_sign is not None:
         x, y = getElementCenter(ele_sign)
