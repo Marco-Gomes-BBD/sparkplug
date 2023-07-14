@@ -58,6 +58,14 @@ def wait_biggest_window(citrix_name, timeout):
     return login_window
 
 
+def typeWaitElement(image, text, bounds, searchTime: int = 60):
+    element = ag.locateOnScreen(image, region=bounds, minSearchTime=searchTime)
+    ag.typewrite(text)
+    if element is not None:
+        x, y = getElementCenter(element)
+        ag.click(x, y)
+
+
 citrix = r"C:\Program Files\Citrix\Secure Access Client\nsload"
 citrix_name = "Citrix Secure Access"
 subprocess.Popen(citrix)
@@ -71,15 +79,5 @@ login_window.activate()
 window = gw.getActiveWindow()
 if window.title == citrix_name:
     bounds = getElementBounds(window)
-
-    ele_next = ag.locateOnScreen(next_image, region=bounds, minSearchTime=60)
-    ag.typewrite(email)
-    if ele_next is not None:
-        x, y = getElementCenter(ele_next)
-        ag.click(x, y)
-
-    ele_sign = ag.locateOnScreen(signin_image, region=bounds, minSearchTime=60)
-    ag.typewrite(password)
-    if ele_sign is not None:
-        x, y = getElementCenter(ele_sign)
-        ag.click(x, y)
+    typeWaitElement(next_image, email, bounds)
+    typeWaitElement(signin_image, password, bounds)
