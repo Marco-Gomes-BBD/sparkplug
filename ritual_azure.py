@@ -7,7 +7,7 @@ import pyautogui as ag
 import pygetwindow as gw
 import subprocess
 
-next_image = os.path.join("res", "next2.png")
+next_image = os.path.join("res", "aws_next.png")
 
 login_window_name = "Sign in to your account"
 

@@ -7,8 +7,8 @@ import pyautogui as ag
 import pygetwindow as gw
 import subprocess
 
-next_image = os.path.join("res", "next.png")
-signin_image = os.path.join("res", "signin.png")
+next_image = os.path.join("res", "citrix_next.png")
+signin_image = os.path.join("res", "citrix_signin.png")
 
 # Get environment
 dotenv_flow("")
