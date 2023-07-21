@@ -312,6 +312,7 @@ def main():
 
 def close():
     if driver is not None:
+        driver.stop_client()
         driver.quit()
 
     if getattr(sys, "frozen", False):
