@@ -1,4 +1,4 @@
 # ritual
 
 ## Build
-pyinstaller --onefile ritual.py
+deploy.bat
