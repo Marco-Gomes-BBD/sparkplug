@@ -42,11 +42,11 @@ def getElementCenter(element):
     return x, y
 
 
-def wait_biggest_window(citrix_name, timeout):
+def wait_biggest_window(name: str, timeout: float):
     login_window = None
     start_time = time.time()
     while login_window is None:
-        windows = gw.getWindowsWithTitle(citrix_name)
+        windows = gw.getWindowsWithTitle(name)
 
         if len(windows) == 2:
             login_window = max(windows, key=lambda w: w.width * w.height)
