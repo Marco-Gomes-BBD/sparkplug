@@ -299,7 +299,7 @@ def main():
     print("Logins:")
     for row in rows:
         user, censor_user, secret = get_row_secret(get_secret, row)
-        if (user is not None):
+        if user is not None:
             censor_local = config.censor or censor_user
             if censor_local:
                 secret = len(secret) * "█"
