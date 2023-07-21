@@ -44,8 +44,10 @@ def read_config(file: str):
     try:
         with open(file, "r") as file:
             config = json.load(file)
-    except Exception:
-        print("Invalid config file")
+    except FileNotFoundError:
+        print("No config file found...")
+    except Exception as e:
+        raise e
 
     accounts = config.get("accounts", {})
     censor = config.get("censor", defaults["censor"])
@@ -333,6 +335,7 @@ def excepthook(type, value, traceback):
             if type is KeyboardInterrupt:
                 print("Goodbye.")
             else:
+                print("Fatal exception:")
                 sys.__excepthook__(type, value, traceback)
     close()
 
