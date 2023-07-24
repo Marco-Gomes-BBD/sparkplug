@@ -8,6 +8,7 @@ import pygetwindow as gw
 import subprocess
 
 next_image = os.path.join("res", "aws_next.png")
+signin_image = os.path.join("res", "aws_signin.png")
 
 login_window_name = "Sign in to your account"
 
@@ -71,7 +72,7 @@ def wait_login_window(name: str, timeout: float):
     return login_window
 
 
-def gui_login(password):
+def gui_login(email, password):
     cmd = ["aws-azure-login.cmd", "--mode=gui"]
     process = subprocess.Popen(cmd)
 
@@ -80,10 +81,12 @@ def gui_login(password):
     window = gw.getActiveWindow()
     if window.title == login_window_name:
         bounds = getElementBounds(window)
-        typeWaitElement(next_image, password, bounds)
+        typeWaitElement(next_image, email, bounds)
+        typeWaitElement(signin_image, password, bounds)
 
     process.wait()
 
 
+email = "PLACEHOLDER"
 password = pyperclip.paste()
-gui_login(password)
+gui_login(email, password)
