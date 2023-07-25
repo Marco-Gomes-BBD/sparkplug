@@ -81,7 +81,7 @@ def gui_login(email, password):
     window = gw.getActiveWindow()
     if window.title == login_window_name:
         bounds = getElementBounds(window)
-        typeWaitElement(next_image, email, bounds)
+        typeWaitElement(next_image, email, bounds, 5)
         typeWaitElement(signin_image, password, bounds)
 
     process.wait()
