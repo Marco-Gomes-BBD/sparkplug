@@ -167,7 +167,7 @@ def get_secret_method(name: str, default: str = defaults["method"]):
         "show": get_secret_show,
     }
     default = methods[default]
-    return dict_lookup(methods, name.lower(), method_error, default)
+    return dict_lookup(methods, name.lower(), default, method_error)
 
 
 def get_authentication_method(name: str, default: str = defaults["auth_method"]):
@@ -179,7 +179,7 @@ def get_authentication_method(name: str, default: str = defaults["auth_method"])
         "saml": authenticate_saml,
     }
     default = methods[default]
-    return dict_lookup(methods, name.lower(), method_error, default)
+    return dict_lookup(methods, name.lower(), default, method_error)
 
 
 def select_driver(name: str, default: str = defaults["driver"]):
@@ -193,7 +193,7 @@ def select_driver(name: str, default: str = defaults["driver"]):
         "safari": webdriver.Safari,
     }
     default = drivers[default]
-    return dict_lookup(drivers, name.lower(), driver_error, default)
+    return dict_lookup(drivers, name.lower(), default, driver_error)
 
 
 def get_row_secret(get_secret, row):

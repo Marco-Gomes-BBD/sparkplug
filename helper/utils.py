@@ -7,9 +7,10 @@ def frozen_exit():
     exit()
 
 
-def dict_lookup(dict, key, lookup_handler, default):
+def dict_lookup(dict, key, default, lookup_handler=None):
     method = dict.get(key, None)
     if method is None:
-        lookup_handler(key)
+        if lookup_handler is not None:
+            lookup_handler(key)
         method = default
     return method
