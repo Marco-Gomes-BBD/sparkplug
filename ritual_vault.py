@@ -186,7 +186,6 @@ def select_driver(name: str, default: str = defaults["driver"]):
     def driver_error(name):
         print(f"Error: {name} not a valid driver, falling back to default.")
 
-    name = name.lower()
     drivers = {
         "chrome": webdriver.Chrome,
         "chromium_edge": webdriver.ChromiumEdge,
