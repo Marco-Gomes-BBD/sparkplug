@@ -50,8 +50,8 @@ def getElementCenter(element):
 
 def typeWaitElement(image, text, bounds, searchTime: int = 60):
     element = ag.locateOnScreen(image, region=bounds, minSearchTime=searchTime)
-    ag.typewrite(text)
     if element is not None:
+        ag.typewrite(text)
         x, y = getElementCenter(element)
         ag.click(x, y)
 
