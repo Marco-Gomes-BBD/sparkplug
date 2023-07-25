@@ -1,11 +1,12 @@
 import os
-import sys
 import time
 from dotenv_flow import dotenv_flow
 
-import pyautogui as ag
 import pygetwindow as gw
 import subprocess
+
+from helper.gui import typeWaitElement, getElementBounds
+from helper.utils import frozen_exit
 
 next_image = os.path.join("res", "citrix_next.png")
 signin_image = os.path.join("res", "citrix_signin.png")
@@ -14,32 +15,6 @@ signin_image = os.path.join("res", "citrix_signin.png")
 dotenv_flow("")
 email = os.getenv("STDB_EMAIL")
 password = os.getenv("STDB_PASSWORD")
-
-
-def close():
-    if getattr(sys, "frozen", False):
-        input()
-    exit()
-
-
-def getElementBounds(box):
-    bounds = None
-    if box is not None:
-        left, top, width, height = box.left, box.top, box.width, box.height
-        bounds = (left, top, width, height)
-    return bounds
-
-
-def getCenter(bounds):
-    left, top, width, height = bounds
-    x, y = left + width // 2, top + height // 2
-    return x, y
-
-
-def getElementCenter(element):
-    bounds = getElementBounds(element)
-    x, y = getCenter(bounds)
-    return x, y
 
 
 def wait_biggest_window(name: str, timeout: float):
@@ -58,14 +33,6 @@ def wait_biggest_window(name: str, timeout: float):
     return login_window
 
 
-def typeWaitElement(image, text, bounds, searchTime: int = 60):
-    element = ag.locateOnScreen(image, region=bounds, minSearchTime=searchTime)
-    if element is not None:
-        ag.typewrite(text)
-        x, y = getElementCenter(element)
-        ag.click(x, y)
-
-
 citrix = r"C:\Program Files\Citrix\Secure Access Client\nsload"
 citrix_name = "Citrix Secure Access"
 subprocess.Popen(citrix)
@@ -73,7 +40,7 @@ subprocess.Popen(citrix)
 login_window = wait_biggest_window(citrix_name, 10)
 if login_window is None:
     print("Window not found.")
-    close()
+    frozen_exit()
 login_window.activate()
 
 window = gw.getActiveWindow()

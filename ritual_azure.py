@@ -3,9 +3,10 @@ import time
 
 import pyperclip
 
-import pyautogui as ag
 import pygetwindow as gw
 import subprocess
+
+from helper.gui import getElementBounds, typeWaitElement
 
 next_image = os.path.join("res", "aws_next.png")
 signin_image = os.path.join("res", "aws_signin.png")
@@ -26,34 +27,6 @@ def console_login(password):
     process.stdin.write("\n")
     process.stdin.flush()
     process.wait()
-
-
-def getElementBounds(box):
-    bounds = None
-    if box is not None:
-        left, top, width, height = box.left, box.top, box.width, box.height
-        bounds = (left, top, width, height)
-    return bounds
-
-
-def getCenter(bounds):
-    left, top, width, height = bounds
-    x, y = left + width // 2, top + height // 2
-    return x, y
-
-
-def getElementCenter(element):
-    bounds = getElementBounds(element)
-    x, y = getCenter(bounds)
-    return x, y
-
-
-def typeWaitElement(image, text, bounds, searchTime: int = 60):
-    element = ag.locateOnScreen(image, region=bounds, minSearchTime=searchTime)
-    if element is not None:
-        ag.typewrite(text)
-        x, y = getElementCenter(element)
-        ag.click(x, y)
 
 
 def wait_login_window(name: str, timeout: float):
@@ -87,6 +60,11 @@ def gui_login(email, password):
     process.wait()
 
 
+# TODO: Decide where to retrieve these from
 email = "PLACEHOLDER"
-password = pyperclip.paste()
+password = "PLACEHOLDER*"  # pyperclip.paste()
+
+# TODO: Implement AWS profiles
+profile = "default"
+
 gui_login(email, password)
