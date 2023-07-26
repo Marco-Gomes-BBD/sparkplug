@@ -62,7 +62,7 @@ def gui_login(email, password):
 
 # TODO: Decide where to retrieve these from
 email = "PLACEHOLDER"
-password = "PLACEHOLDER*"  # pyperclip.paste()
+password = "PLACEHOLDER"  # pyperclip.paste()
 
 # TODO: Implement AWS profiles
 profile = "default"
