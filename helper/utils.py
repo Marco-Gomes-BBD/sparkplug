@@ -4,7 +4,7 @@ import sys
 def frozen_exit():
     if getattr(sys, "frozen", False):
         input()
-    exit()
+    sys.exit()
 
 
 def dict_lookup(dict, key, default, lookup_handler=None):
