@@ -3,8 +3,9 @@ from modules.module import import_module_path
 from type.dict import MissingKeyDefaultDict
 
 import actions.azure as azure
+import actions.example as example
 
-builtin = {"azure": azure}
+builtin = {"azure": azure, "example": example}
 
 
 def run_action(module_name, params):
