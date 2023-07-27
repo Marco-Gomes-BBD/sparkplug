@@ -1,3 +1,4 @@
+import copy
 import os
 import sys
 import json
@@ -15,6 +16,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.common import exceptions as seleniumError
 
+from action import run_action_specs
 from helper.utils import dict_lookup, frozen_exit
 from helper.selenium import (
     await_element,
@@ -94,6 +96,7 @@ def get_account(accounts, user):
     retrieve = lookup.get("retrieve", False)
     reason = lookup.get("reason", None)
     censor_user = lookup.get("censor", False)
+    actions = lookup.get("actions", [])
 
     issue = None
     if user not in accounts:
@@ -104,7 +107,7 @@ def get_account(accounts, user):
     elif not retrieve:
         issue = "Account retrieve blacklist"
 
-    return user, reason, censor_user, issue
+    return user, reason, censor_user, issue, actions
 
 
 def get_secret_show(driver, reason):
@@ -202,7 +205,7 @@ def get_row_secret(get_secret, row):
     ele_name = find_element_safe(ele_user, sel, '[data-testid="grid-cell-UserName"]')
 
     user = ele_name.get_attribute("innerText")
-    user, reason, censor_user, issue = get_account(config.accounts, user)
+    user, reason, censor_user, issue, actions = get_account(config.accounts, user)
     if issue is not None:
         print(f"{padding}Issue with user: {user} ({issue})")
         return None, False, None
@@ -212,7 +215,8 @@ def get_row_secret(get_secret, row):
     ele_more.click()
 
     secret = get_secret(driver, reason)
-    return user, censor_user, secret
+    actions = copy.deepcopy(actions)
+    return user, censor_user, secret, actions
 
 
 def parse_arguments(version):
@@ -257,13 +261,17 @@ def main():
     # Get the logins
     print("Logins:")
     for row in rows:
-        user, censor_user, secret = get_row_secret(get_secret, row)
+        user, censor_user, secret, actions = get_row_secret(get_secret, row)
         if user is not None:
             censor_local = config.censor or censor_user
             if censor_local:
                 secret = len(secret) * "█"
 
             print(f"{padding}{user}: {secret}")
+
+            param_object = {"user": user, "password": secret}
+            run_action_specs(actions, param_object)
+
             sleep(3)
 
     save_config(config, args.config)
