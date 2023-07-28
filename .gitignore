@@ -15,6 +15,7 @@ config.json
 # PyInstaller
 # NOTE: This is generated, but if modifications
 #       need to be made this should be removed.
+# NOTE: could use pyinstaller <spec> instead...
 *.spec
 
 # PyInstaller
