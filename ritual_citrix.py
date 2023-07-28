@@ -40,7 +40,7 @@ subprocess.Popen(citrix)
 login_window = wait_biggest_window(citrix_name, 10)
 if login_window is None:
     print("Window not found.")
-    frozen_exit()
+    frozen_exit("Press enter to exit...")
 login_window.activate()
 
 window = gw.getActiveWindow()

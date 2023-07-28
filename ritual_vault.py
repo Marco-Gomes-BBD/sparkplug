@@ -282,7 +282,7 @@ def close():
         driver.stop_client()
         driver.quit()
 
-    frozen_exit()
+    frozen_exit("Press enter to exit...")
 
 
 def excepthook(type, value, traceback):

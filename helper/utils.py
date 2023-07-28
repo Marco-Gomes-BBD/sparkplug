@@ -1,9 +1,12 @@
 import sys
 
 
-def frozen_exit():
+def frozen_exit(message: str = None):
     if getattr(sys, "frozen", False):
+        if message is not None:
+            print(message)
         input()
+
     sys.exit()
 
 
