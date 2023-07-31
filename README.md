@@ -1,5 +1,5 @@
-# ritual
-The ritual!
+# Sparkplug
+A little tool to (semi-)automate logins.
 
 ## Setup
 Install python 3
@@ -21,9 +21,9 @@ Be sure to activate the shell environment.
 pipenv shell
 ```
 
-Run any of the rituals
+Run any of the automations
 ```
-python ritual_<sacrifice>.py
+python sparkplug_<target>.py
 ```
 
 ## Build
