@@ -263,11 +263,11 @@ def main():
     for row in rows:
         user, censor_user, secret, actions = get_row_secret(get_secret, row)
         if user is not None:
-            censor_local = config.censor or censor_user
-            if censor_local:
-                secret = len(secret) * "█"
-
-            print(f"{padding}{user}: {secret}")
+            print_secret = secret
+            censor = config.censor or censor_user
+            if censor:
+                print_secret = len(print_secret) * "█"
+            print(f"{padding}{user}: {print_secret}")
 
             param_object = {"user": user, "password": secret}
             run_action_specs(actions, param_object)
