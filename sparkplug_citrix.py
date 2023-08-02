@@ -5,6 +5,7 @@ from dotenv_flow import dotenv_flow
 import pygetwindow as gw
 import subprocess
 
+from keys.key import get_keyring_password
 from helper.gui import typeWaitElement, getElementBounds
 from helper.utils import frozen_exit
 
@@ -13,8 +14,9 @@ signin_image = os.path.join("res", "citrix_signin.png")
 
 # Get environment
 dotenv_flow("")
+service = "Sparkplug - STDB"
 email = os.getenv("STDB_EMAIL")
-password = os.getenv("STDB_PASSWORD")
+password = os.getenv("STDB_PASSWORD") or get_keyring_password(service, email)
 
 
 def wait_biggest_window(name: str, timeout: float):

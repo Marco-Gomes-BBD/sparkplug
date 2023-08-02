@@ -17,6 +17,7 @@ from selenium.webdriver.support.wait import WebDriverWait
 from selenium.common import exceptions as seleniumError
 
 from action import run_action_specs
+from keys.key import get_keyring_password
 from helper.utils import dict_lookup, frozen_exit
 from helper.selenium import (
     await_element,
@@ -28,10 +29,12 @@ from helper.selenium import (
     bring_to_front,
 )
 
+
 # Get environment
 dotenv_flow("")
+service = "Sparkplug - STDB"
 email = os.getenv("STDB_EMAIL")
-password = os.getenv("STDB_PASSWORD")
+password = os.getenv("STDB_PASSWORD") or get_keyring_password(service, email)
 
 defaults = {
     "driver": "chrome",
