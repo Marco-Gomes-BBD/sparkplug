@@ -8,7 +8,7 @@ import actions.example as example
 builtin = {"azure": azure, "example": example}
 
 
-def run_action(module_name, params):
+def run_action(module_name, params={}):
     module_import = import_module_path(module_name, "actions")
     module_builtin = builtin[module_name]
     module = module_import or module_builtin
