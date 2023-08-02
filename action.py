@@ -4,8 +4,9 @@ from type.dict import MissingKeyDefaultDict
 
 import actions.azure as azure
 import actions.example as example
+import actions.command as command
 
-builtin = {"azure": azure, "example": example}
+builtin = {"azure": azure, "example": example, "command": command}
 
 
 def action_from_list(action):
