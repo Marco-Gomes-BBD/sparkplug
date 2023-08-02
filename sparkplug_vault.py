@@ -16,7 +16,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.common import exceptions as seleniumError
 
-from action import run_action_specs, run_action
+from action import run_action_specs, run_action, action_from_list
 from keys.key import get_keyring_password
 from helper.utils import dict_lookup, frozen_exit
 from helper.selenium import (
@@ -227,7 +227,7 @@ def parse_arguments(version):
     parser.add_argument(
         "-c", "--config", default="config.json", help="Specify config file"
     )
-    parser.add_argument("-a", "--action", help="Run a particular action")
+    parser.add_argument("-a", "--action", nargs="+", help="Run a particular action")
     parser.add_argument("-v", "--version", action="version", version=version)
     args = parser.parse_args()
     return args
@@ -311,8 +311,8 @@ def excepthook(type, value, traceback):
 sys.excepthook = excepthook
 args = parse_arguments(version)
 if args.action is not None:
-    action = args.action
-    run_action(action)
+    action, kwargs = action_from_list(args.action)
+    run_action(action, kwargs)
     exit()
 
 main()

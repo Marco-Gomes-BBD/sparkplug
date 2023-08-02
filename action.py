@@ -8,6 +8,15 @@ import actions.example as example
 builtin = {"azure": azure, "example": example}
 
 
+def action_from_list(action):
+    args = action[1:]
+    map_args = {}
+    for arg in args:
+        key, value = arg.split("=")
+        map_args[key] = value
+    return action[0], map_args
+
+
 def run_action(module_name, params={}):
     module_import = import_module_path(module_name, "actions")
     module_builtin = builtin[module_name]
