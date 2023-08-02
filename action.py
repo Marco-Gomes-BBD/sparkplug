@@ -19,8 +19,12 @@ def action_from_list(action):
 
 def run_action(module_name, params={}):
     module_import = import_module_path(module_name, "actions")
-    module_builtin = builtin[module_name]
+    module_builtin = builtin.get(module_name, None)
+
     module = module_import or module_builtin
+    if module is None:
+        raise ModuleNotFoundError(f"Module not found: '{module_name}'")
+
     module.main(**params)
 
 
