@@ -28,5 +28,5 @@ python sparkplug_<target>.py
 
 ## Build
 ```sh
-pipenv run deploy.bat
+pipenv run build.bat
 ```
