@@ -4,7 +4,9 @@ import sys
 import json
 import argparse
 from time import sleep
+from pathlib import Path
 from dotenv_flow import dotenv_flow
+import dotenv
 
 import types
 
@@ -17,7 +19,7 @@ from selenium.webdriver.support.wait import WebDriverWait
 from selenium.common import exceptions as seleniumError
 
 from action import run_action_specs, run_action, action_from_list
-from keys.key import get_keyring_password
+from keys.key import get_keyring_password, set_keyring_password
 from helper.utils import dict_lookup, frozen_exit
 from helper.selenium import (
     await_element,
@@ -28,13 +30,20 @@ from helper.selenium import (
     get_children,
     bring_to_front,
 )
+from modules.module import get_executable_location
 
 
 # Get environment
-dotenv_flow("")
+env_files = dotenv_flow("")
 service = "Sparkplug - STDB"
 email = os.getenv("STDB_EMAIL")
 password = os.getenv("STDB_PASSWORD") or get_keyring_password(service, email)
+
+no_env_file = len(env_files) == 0
+env_file = None if no_env_file else env_files[0]
+if no_env_file:
+    env_file = get_executable_location()
+    env_file = os.path.join(env_file, ".env.local")
 
 defaults = {
     "driver": "chrome",
@@ -229,6 +238,7 @@ def parse_arguments(version):
     )
     parser.add_argument("-a", "--action", nargs="+", help="Run a particular action")
     parser.add_argument("-v", "--version", action="version", version=version)
+    parser.add_argument("-l", "--set-login", action="store_true")
     args = parser.parse_args()
     return args
 
@@ -308,8 +318,36 @@ def excepthook(type, value, traceback):
     close()
 
 
+def prompt_default(prompt: str, default):
+    format_default = f" ({default})" if default else ""
+    prompt = prompt.format_map({"default": format_default})
+    value = input(prompt) or default
+    return value
+
+
+def touch(file: str):
+    path = Path(file)
+    path.touch()
+
+
 sys.excepthook = excepthook
 args = parse_arguments(version)
+
+first_run = email is None or no_env_file
+if args.set_login or first_run:
+    if first_run:
+        print("First run, please set auth info:")
+        touch(env_file)
+
+    email = prompt_default("Email{default}: ", email)
+    password = prompt_default("Password{default}: ", password)
+
+    dotenv.set_key(env_file, "STDB_EMAIL", email)
+    set_keyring_password(service, email, password)
+
+    if not first_run:
+        exit()
+
 if args.action is not None:
     action, kwargs = action_from_list(args.action)
     run_action(action, kwargs)
