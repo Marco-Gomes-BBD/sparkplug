@@ -37,7 +37,7 @@ def run_action_specs(actions, kwargs):
         params = action_spec.get("params", {})
 
         for k, v in params.items():
-            if type(v) is str:
+            if isinstance(v, str):
                 v = v.format_map(kwargs)
             params[k] = v
 
