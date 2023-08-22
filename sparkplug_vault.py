@@ -341,12 +341,12 @@ if args.set_login or first_run:
     set_keyring_password(service, email, password)
 
     if not first_run:
-        exit()
+        close()
 
 if args.action is not None:
     action, kwargs = action_from_list(args.action)
     run_action(action, kwargs)
-    exit()
+    close()
 
 main()
 close()
