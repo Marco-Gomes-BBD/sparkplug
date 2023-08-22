@@ -30,8 +30,6 @@ from helper.selenium import (
     get_children,
     bring_to_front,
 )
-from modules.module import get_executable_location
-
 
 # Get environment
 env_files = dotenv_flow("")
@@ -40,10 +38,7 @@ email = os.getenv("STDB_EMAIL")
 password = os.getenv("STDB_PASSWORD") or get_keyring_password(service, email)
 
 no_env_file = len(env_files) == 0
-env_file = None if no_env_file else env_files[0]
-if no_env_file:
-    env_file = get_executable_location()
-    env_file = os.path.join(env_file, ".env.local")
+env_file = ".env.local" if no_env_file else env_files[0]
 
 defaults = {
     "driver": "chrome",
